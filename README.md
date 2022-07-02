@@ -1,16 +1,10 @@
-# flutter_bloc_socket
+# Tutorial: Implementing a chat app with flutter, socketIo and BLoC
 
-A new Flutter project.
+This project illustrates how to use BLoC as a state management in a flutter project that implements chat functionalities.
 
-## Getting Started
+# The Goal
 
-This project is a starting point for a Flutter application.
+Here we want to implement a simple chat application with Flutter. This project is based on [this](https://blog.codemagic.io/flutter-ui-socket/). Here, we will take that project to the next level by using BLoC as a state management layer.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+> **Hint**
+> Fill free to clone this project and use it as a template for your next project
