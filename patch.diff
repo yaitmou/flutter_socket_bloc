@@ -1,0 +1,690 @@
+From b9e8997347340509c953da45bc91d3a61ac6fa05 Mon Sep 17 00:00:00 2001
+From: Marcel Diaz <al.diaz.privat@gmail.com>
+Date: Mon, 4 Jul 2022 15:54:43 +0200
+Subject: [PATCH] ** functional ** - Added SQLITE - Added DatabaseApi class
+ with needed operations. (get user, create user, update socketid, get all
+ users)
+
+** UI **
+- Added screen with buttons to showcase the database relevant operations
+
+** other **
+- added textfile for open questions
+---
+ OPEN_QUESTIONS.md                             | 10 ++
+ ios/Flutter/Debug.xcconfig                    |  1 +
+ ios/Flutter/Release.xcconfig                  |  1 +
+ ios/Podfile                                   | 41 ++++++++
+ lib/chat.dart                                 | 83 ++++++++++++++++
+ lib/database_api.dart                         | 98 +++++++++++++++++++
+ lib/home.dart                                 | 86 +++++++++-------
+ lib/models/chat_user.dart                     | 47 ++++++++-
+ lib/socket_api.dart                           | 29 +++---
+ macos/Flutter/Flutter-Debug.xcconfig          |  1 +
+ macos/Flutter/Flutter-Release.xcconfig        |  1 +
+ macos/Flutter/GeneratedPluginRegistrant.swift |  2 +
+ macos/Podfile                                 | 40 ++++++++
+ pubspec.lock                                  | 23 ++++-
+ pubspec.yaml                                  |  2 +
+ 15 files changed, 415 insertions(+), 50 deletions(-)
+ create mode 100644 OPEN_QUESTIONS.md
+ create mode 100644 ios/Podfile
+ create mode 100644 lib/chat.dart
+ create mode 100644 lib/database_api.dart
+ create mode 100644 macos/Podfile
+
+diff --git a/OPEN_QUESTIONS.md b/OPEN_QUESTIONS.md
+new file mode 100644
+index 0000000..6c07377
+--- /dev/null
++++ b/OPEN_QUESTIONS.md
+@@ -0,0 +1,10 @@
++# socket_api.dart
++Here im stuck on line [29]. Im not able to retrieve the user data. For demo purposes im providing a hardcoded id [1]
++on line [33] in [chat.dart]. On line [34] before it goes to the [socket_api] class i have the data which is not null
++
++# Open question 1 / need advice
++I  saw repos which used the bloc file in a different way. They emit state + 1 instead of the state name. Are these approaches similar or is there any difference?
++
++# Open questions 2 / need advice
++I’m unsure if I did any mistakes on the chat_bloc chat_state and the chat_event. Could you maybe give me more explanation on this files here?
++From my understanding the states is the different states the application can have. In this case initial state, state when messages aren’t there but loading, error state and so on. Events is every piece of function which is getting implemented and the bloc is the place reacting to the events and emiting states. Is that right? Do I have mistakes on these 3 files?
+\ No newline at end of file
+diff --git a/ios/Flutter/Debug.xcconfig b/ios/Flutter/Debug.xcconfig
+index 592ceee..ec97fc6 100644
+--- a/ios/Flutter/Debug.xcconfig
++++ b/ios/Flutter/Debug.xcconfig
+@@ -1 +1,2 @@
++#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
+ #include "Generated.xcconfig"
+diff --git a/ios/Flutter/Release.xcconfig b/ios/Flutter/Release.xcconfig
+index 592ceee..c4855bf 100644
+--- a/ios/Flutter/Release.xcconfig
++++ b/ios/Flutter/Release.xcconfig
+@@ -1 +1,2 @@
++#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
+ #include "Generated.xcconfig"
+diff --git a/ios/Podfile b/ios/Podfile
+new file mode 100644
+index 0000000..1e8c3c9
+--- /dev/null
++++ b/ios/Podfile
+@@ -0,0 +1,41 @@
++# Uncomment this line to define a global platform for your project
++# platform :ios, '9.0'
++
++# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
++ENV['COCOAPODS_DISABLE_STATS'] = 'true'
++
++project 'Runner', {
++  'Debug' => :debug,
++  'Profile' => :release,
++  'Release' => :release,
++}
++
++def flutter_root
++  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
++  unless File.exist?(generated_xcode_build_settings_path)
++    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
++  end
++
++  File.foreach(generated_xcode_build_settings_path) do |line|
++    matches = line.match(/FLUTTER_ROOT\=(.*)/)
++    return matches[1].strip if matches
++  end
++  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
++end
++
++require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
++
++flutter_ios_podfile_setup
++
++target 'Runner' do
++  use_frameworks!
++  use_modular_headers!
++
++  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
++end
++
++post_install do |installer|
++  installer.pods_project.targets.each do |target|
++    flutter_additional_ios_build_settings(target)
++  end
++end
+diff --git a/lib/chat.dart b/lib/chat.dart
+new file mode 100644
+index 0000000..5184f1d
+--- /dev/null
++++ b/lib/chat.dart
+@@ -0,0 +1,83 @@
++import 'package:flutter/material.dart';
++import 'package:flutter_bloc/flutter_bloc.dart';
++import 'package:flutter_bloc_socket/database_api.dart';
++import 'package:flutter_bloc_socket/models/chat_user.dart';
++import 'package:flutter_bloc_socket/socket_api.dart';
++
++import 'bloc/chat/chat_bloc.dart';
++
++class Chat extends StatefulWidget {
++  const Chat({Key? key}) : super(key: key);
++
++  @override
++  State<Chat> createState() => _ChatState();
++}
++
++class _ChatState extends State<Chat> {
++  // Is this the correct approach here to do it like this?
++  late SocketApi socketApi;
++  DatabaseApi databaseApi = DatabaseApi.db;
++  var user;
++
++  getUser() async {
++    user = await DatabaseApi.db.getUser(1);
++    print('User print : ${user}');
++    return user;
++  }
++
++  @override
++  void initState() {
++    super.initState();
++    // We have already create the bloc in the main. Here, we only once the get
++    // a reference to it
++    getUser();
++    SocketApi(context.read<ChatBloc>(), user);
++    socketApi.connect();
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    return Scaffold(
++      floatingActionButton: FloatingActionButton(
++          child: const Icon(Icons.near_me),
++          onPressed: () async {
++            // sending the message with socketapi correct?
++            // Correct!
++            // here we are sending additional info (fromId toId)
++            socketApi.sendMessage('', '', 'message');
++
++            //await databaseApi.insertUser(mockUser);
++            //final res =await databaseApi.getUsers();
++          }),
++      body: Center(
++        child: Column(
++          children: [
++            Expanded(
++              child: BlocBuilder<ChatBloc, ChatState>(
++                builder: (BuildContext context, ChatState state) {
++                  // At This point im still struggling getting the data in real time
++                  // im not sure if chatbloc in bloc above is fine
++                  // im not sure how to call the messages and messages length below here
++                  if (state is GetConversationEvent) {
++                    // <-- You might want to correct the name here!!! State instead of Event... I guess a copy paste trick ;P
++                    return ListView.builder(
++                      itemCount: state.conversation.length, //<-- get the length
++                      itemBuilder: ((context, index) {
++                        return Text(
++                          state.conversation[index].message.toString(),
++                        );
++                      }),
++                    );
++                  } else {
++                    return const CircularProgressIndicator();
++                  }
++                },
++              ),
++              // child:
++            ),
++          ],
++        ),
++      ),
++    );
++  }
++}
+diff --git a/lib/database_api.dart b/lib/database_api.dart
+new file mode 100644
+index 0000000..c36aeef
+--- /dev/null
++++ b/lib/database_api.dart
+@@ -0,0 +1,98 @@
++import 'package:path/path.dart';
++import 'package:sqflite/sqflite.dart';
++
++import 'models/chat_user.dart';
++
++class DatabaseApi {
++  DatabaseApi._();
++  static final DatabaseApi db = DatabaseApi._();
++
++  static Database? _database;
++  Future<Database> get database async => _database ??= await initDB();
++
++  Future<Database> initDB() async {
++    print('_init database');
++    return await openDatabase(
++      join(await getDatabasesPath(), 'database_name.db'),
++      onCreate: (db, version) {
++        db.execute(
++          "CREATE TABLE ChatUser(id INTEGER PRIMARY KEY, socketId INTEGER, userName TEXT);",
++        );
++      },
++      version: 1,
++    );
++  }
++
++  // Define a function that inserts user into the database
++  Future<void> insertUser(ChatUser user) async {
++    // // Get a reference to the database.
++    // final db = await database;
++
++    Database database = await db.database;
++
++    // Insert the user into the correct table. You might also specify the
++    // `conflictAlgorithm` to use in case the same user is inserted twice.
++    //
++    // In this case, replace any previous data.
++    await database.insert(
++      'ChatUser',
++      ChatUser(userName: user.userName, id: user.id, socketId: user.socketId)
++          .toMap(),
++      conflictAlgorithm: ConflictAlgorithm.replace,
++    );
++    print('User created');
++  }
++
++// A method that retrieves all the dogs from the dogs table.
++  Future<List<ChatUser>> getUsers() async {
++    // Get a reference to the database.
++    final db = await database;
++
++    // Query the table for all The Dogs.
++    final List<Map<String, dynamic>> maps = await db.query('ChatUser');
++
++    // Convert the List<Map<String, dynamic> into a List<Dog>.
++    return List.generate(maps.length, (i) {
++      return ChatUser(
++        id: maps[i]['id'],
++        socketId: maps[i]['socketId'],
++        userName: maps[i]['userName'],
++      );
++    });
++  }
++
++  Future<ChatUser> getUser(userId) async {
++    // Get a reference to the database.
++    final db = await database;
++
++    // Query the table for all The Dogs.
++    final List<Map<String, dynamic>> maps = await db.query('ChatUser');
++    var finalUser;
++
++    final res = await db.query(
++      'ChatUser',
++      where: 'id = ?',
++      whereArgs: [userId],
++      limit: 1,
++    );
++    for (var n in res) {
++      finalUser = ChatUser.fromMap(n);
++    }
++    return finalUser;
++  }
++
++  Future<void> updateSocketId(ChatUser user) async {
++    // Get a reference to the database.
++    final db = await database;
++
++    // Update the given user.
++    await db.update(
++      'ChatUser',
++      user.toMap(),
++      // Ensure that the Dog has a matching id.
++      where: 'id = ?',
++      // Pass the Dog's id as a whereArg to prevent SQL injection.
++      whereArgs: [user.id],
++    );
++  }
++}
+diff --git a/lib/home.dart b/lib/home.dart
+index 4c46621..08f76b1 100644
+--- a/lib/home.dart
++++ b/lib/home.dart
+@@ -1,5 +1,10 @@
++import 'dart:math';
++
+ import 'package:flutter/material.dart';
+ import 'package:flutter_bloc/flutter_bloc.dart';
++import 'package:flutter_bloc_socket/chat.dart';
++import 'package:flutter_bloc_socket/database_api.dart';
++import 'package:flutter_bloc_socket/models/chat_user.dart';
+ import 'package:flutter_bloc_socket/socket_api.dart';
+ 
+ import 'bloc/chat/chat_bloc.dart';
+@@ -14,53 +19,64 @@ class Home extends StatefulWidget {
+ class _HomeState extends State<Home> {
+   // Is this the correct approach here to do it like this?
+   late SocketApi socketApi;
++  DatabaseApi databaseApi = DatabaseApi.db;
++
++  
++var textOutput;
++
+ 
+   @override
+   void initState() {
+     super.initState();
+-    // We have already create the bloc in the main. Here, we only once the get
+-    // a reference to it
+-    SocketApi(context.read<ChatBloc>());
+-    socketApi.connect();
++    databaseApi.initDB();
+   }
+ 
+   @override
+   Widget build(BuildContext context) {
+     return Scaffold(
+-      floatingActionButton: FloatingActionButton(
+-          child: const Icon(Icons.near_me),
+-          onPressed: () {
+-            // sending the message with socketapi correct?
+-            // Correct!
+-            // here we are sending additional info (fromId toId)
+-            socketApi.sendMessage('', '', 'message');
+-          }),
++      floatingActionButton: FloatingActionButton(onPressed: () {
++        Navigator
++    .of(context)
++    .pushReplacement(new MaterialPageRoute(builder: (BuildContext context) => Chat()));
++      },),
+       body: Center(
+         child: Column(
+           children: [
+-            Expanded(
+-              child: BlocBuilder<ChatBloc, ChatState>(
+-                builder: (BuildContext context, ChatState state) {
+-                  // At This point im still struggling getting the data in real time
+-                  // im not sure if chatbloc in bloc above is fine
+-                  // im not sure how to call the messages and messages length below here
+-                  if (state is GetConversationEvent) {
+-                    // <-- You might want to correct the name here!!! State instead of Event... I guess a copy paste trick ;P
+-                    return ListView.builder(
+-                      itemCount: state.conversation.length, //<-- get the length
+-                      itemBuilder: ((context, index) {
+-                        return Text(
+-                          state.conversation[index].message.toString(),
+-                        );
+-                      }),
+-                    );
+-                  } else {
+-                    return const CircularProgressIndicator();
+-                  }
+-                },
+-              ),
+-              // child:
+-            ),
++            SizedBox(height: 80,),
++            TextButton(
++              onPressed: (() async {
++                 final res = await databaseApi.getUsers(); 
++                 setState(() {
++                   textOutput = res;
++                 });
++                 
++              }),
++              child: Text('Get Users'),),
++              TextButton(
++              onPressed: (() async {
++                ChatUser mockData = ChatUser(id: 2, socketId: 142123, userName: 'User B');
++                
++                 final res = await databaseApi.insertUser(mockData); 
++                 setState(() {
++                   textOutput = 'User created';
++                 });
++                 
++              }),
++              child: Text('Create random User'),),
++
++              TextButton(
++              onPressed: (() async {
++             
++                final user = ChatUser(id: 1, socketId: 1, userName: 'Marcel');
++                 final res = await databaseApi.updateSocketId(user); 
++                 setState(() {
++                   textOutput = 'Updated socket Id of user';
++                 });
++                 
++              }),
++              child: Text('Update socket id'),),
++
++              Text(textOutput != null ?  textOutput.toString() : '')
+           ],
+         ),
+       ),
+diff --git a/lib/models/chat_user.dart b/lib/models/chat_user.dart
+index d94b80d..0841f2d 100644
+--- a/lib/models/chat_user.dart
++++ b/lib/models/chat_user.dart
+@@ -1,12 +1,53 @@
+ /// You might want to create a chat user
+-/// 
++///
+ /// Basic information would be required the most important property here is the
+ /// [socketId]. We send this to server so that we can send targeted chat
+ /// messages to each user
+-/// 
++///
+ /// ChatUser({
+ ///   this.socketId,
+ ///   this.id,
+ ///   this.userName,
+ ///   this.isOnline,
+-/// });
+\ No newline at end of file
++/// });
++///
++
++class ChatUser {
++  int id;
++  int socketId;
++  String userName;
++  // String isOnline;
++
++  ChatUser({
++    required this.id,
++    required this.socketId,
++    required this.userName,
++    // required this.isOnline
++  });
++
++// Convert a Dog into a Map. The keys must correspond to the names of the
++  // columns in the database.
++  Map<String, dynamic> toMap() {
++    return {
++      'id': id,
++      'socketId': socketId,
++      'userName': userName,
++    };
++  }
++
++ 
++   factory ChatUser.fromMap(Map<String, dynamic> map) {
++    return ChatUser(
++      id: map['id'] as int,
++      socketId: map['socketId'] as int,
++      userName: map['userName'] as String,
++    );
++  }
++
++  // Implement toString to make it easier to see information about
++  // each dog when using the print statement.
++  @override
++  String toString() {
++    return 'User{id: $id, socketId: $socketId, userName: $userName}';
++  }
++}
+diff --git a/lib/socket_api.dart b/lib/socket_api.dart
+index 7daa761..2ec5ca6 100644
+--- a/lib/socket_api.dart
++++ b/lib/socket_api.dart
+@@ -1,6 +1,8 @@
++import 'package:flutter_bloc_socket/database_api.dart';
+ import 'package:socket_io_client/socket_io_client.dart';
+ 
+ import 'bloc/chat/chat_bloc.dart';
++import 'models/chat_user.dart';
+ import 'models/message_model.dart';
+ 
+ // In this file it would help me a lot if you could explain me each line, since
+@@ -11,16 +13,20 @@ import 'models/message_model.dart';
+ 
+ class SocketApi {
+   late Socket socket;
++  late ChatUser user;
++
+   ChatBloc chatBloc = ChatBloc();
+ 
+   static final SocketApi _socketApi = SocketApi._internal();
+ 
+-  factory SocketApi(
+-    ChatBloc chatBloc,
+-    // you can pass here all data that you need to access. For example:
+-    // User user <-- might be helpful to send some user data...
+-  ) {
++  factory SocketApi(ChatBloc chatBloc, ChatUser user
++
++      // you can pass here all data that you need to access. For example:
++      // User user <-- might be helpful to send some user data...
++      ) {
+     _socketApi.chatBloc = chatBloc;
++    _socketApi.user = user;
++    print('user in socket api ${user}'); // <--- How to retrieve the user here? what am I missing here?
+     return _socketApi;
+   }
+ 
+@@ -40,12 +46,13 @@ class SocketApi {
+       // them to server. Here we are mostly interested in the socketId. We can
+       // also send user.id or any information related to the user and which can
+       // help us double check that we are indeed targeting to right user!
++
+       socket.on('connect', (_) {
+         socket.emit('addUser', {
+           "socketId": socket.id,
+-          "id": 'user.id', //<-- this is the current user's id (not socketId)
+-          "userName": 'user.firstName', // <-- current user firsName
+-          "isOnline": true,
++          "id": user.id, //<-- this is the current user's id (not socketId)
++          "userName": user.userName, // <-- current user firsName
++          // "isOnline": true,
+         });
+       });
+ 
+@@ -55,9 +62,9 @@ class SocketApi {
+       socket.on('reconnect', (_) {
+         socket.emit('addUser', {
+           "socketId": socket.id,
+-          "id": 'user.id',
+-          "userName": 'user.firstName',
+-          "isOnline": true,
++          "id": user.id,
++          "userName": user.userName,
++          // "isOnline": true,
+         });
+       });
+ 
+diff --git a/macos/Flutter/Flutter-Debug.xcconfig b/macos/Flutter/Flutter-Debug.xcconfig
+index c2efd0b..4b81f9b 100644
+--- a/macos/Flutter/Flutter-Debug.xcconfig
++++ b/macos/Flutter/Flutter-Debug.xcconfig
+@@ -1 +1,2 @@
++#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
+ #include "ephemeral/Flutter-Generated.xcconfig"
+diff --git a/macos/Flutter/Flutter-Release.xcconfig b/macos/Flutter/Flutter-Release.xcconfig
+index c2efd0b..5caa9d1 100644
+--- a/macos/Flutter/Flutter-Release.xcconfig
++++ b/macos/Flutter/Flutter-Release.xcconfig
+@@ -1 +1,2 @@
++#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
+ #include "ephemeral/Flutter-Generated.xcconfig"
+diff --git a/macos/Flutter/GeneratedPluginRegistrant.swift b/macos/Flutter/GeneratedPluginRegistrant.swift
+index cccf817..8370e57 100644
+--- a/macos/Flutter/GeneratedPluginRegistrant.swift
++++ b/macos/Flutter/GeneratedPluginRegistrant.swift
+@@ -5,6 +5,8 @@
+ import FlutterMacOS
+ import Foundation
+ 
++import sqflite
+ 
+ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
++  SqflitePlugin.register(with: registry.registrar(forPlugin: "SqflitePlugin"))
+ }
+diff --git a/macos/Podfile b/macos/Podfile
+new file mode 100644
+index 0000000..dade8df
+--- /dev/null
++++ b/macos/Podfile
+@@ -0,0 +1,40 @@
++platform :osx, '10.11'
++
++# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
++ENV['COCOAPODS_DISABLE_STATS'] = 'true'
++
++project 'Runner', {
++  'Debug' => :debug,
++  'Profile' => :release,
++  'Release' => :release,
++}
++
++def flutter_root
++  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'ephemeral', 'Flutter-Generated.xcconfig'), __FILE__)
++  unless File.exist?(generated_xcode_build_settings_path)
++    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure \"flutter pub get\" is executed first"
++  end
++
++  File.foreach(generated_xcode_build_settings_path) do |line|
++    matches = line.match(/FLUTTER_ROOT\=(.*)/)
++    return matches[1].strip if matches
++  end
++  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Flutter-Generated.xcconfig, then run \"flutter pub get\""
++end
++
++require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
++
++flutter_macos_podfile_setup
++
++target 'Runner' do
++  use_frameworks!
++  use_modular_headers!
++
++  flutter_install_all_macos_pods File.dirname(File.realpath(__FILE__))
++end
++
++post_install do |installer|
++  installer.pods_project.targets.each do |target|
++    flutter_additional_macos_build_settings(target)
++  end
++end
+diff --git a/pubspec.lock b/pubspec.lock
+index 392355a..ab092a2 100644
+--- a/pubspec.lock
++++ b/pubspec.lock
+@@ -138,7 +138,7 @@ packages:
+     source: hosted
+     version: "1.0.0"
+   path:
+-    dependency: transitive
++    dependency: "direct main"
+     description:
+       name: path
+       url: "https://pub.dartlang.org"
+@@ -177,6 +177,20 @@ packages:
+       url: "https://pub.dartlang.org"
+     source: hosted
+     version: "1.8.2"
++  sqflite:
++    dependency: "direct main"
++    description:
++      name: sqflite
++      url: "https://pub.dartlang.org"
++    source: hosted
++    version: "2.0.2+1"
++  sqflite_common:
++    dependency: transitive
++    description:
++      name: sqflite_common
++      url: "https://pub.dartlang.org"
++    source: hosted
++    version: "2.2.1+1"
+   stack_trace:
+     dependency: transitive
+     description:
+@@ -198,6 +212,13 @@ packages:
+       url: "https://pub.dartlang.org"
+     source: hosted
+     version: "1.1.0"
++  synchronized:
++    dependency: transitive
++    description:
++      name: synchronized
++      url: "https://pub.dartlang.org"
++    source: hosted
++    version: "3.0.0+2"
+   term_glyph:
+     dependency: transitive
+     description:
+diff --git a/pubspec.yaml b/pubspec.yaml
+index b4a2ef7..e32f095 100644
+--- a/pubspec.yaml
++++ b/pubspec.yaml
+@@ -13,7 +13,9 @@ dependencies:
+   flutter:
+     sdk: flutter
+   flutter_bloc: ^8.0.1
++  path: ^1.8.1
+   socket_io_client: ^1.0.2
++  sqflite: ^2.0.2+1
+ 
+ dev_dependencies:
+   flutter_lints: ^2.0.0
+-- 
+2.31.0
+
