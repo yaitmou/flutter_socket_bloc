@@ -1,5 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_bloc_socket/chat.dart';
+import 'package:flutter_bloc_socket/database_api.dart';
+import 'package:flutter_bloc_socket/models/chat_user.dart';
 import 'package:flutter_bloc_socket/socket_api.dart';
 
 import 'bloc/chat/chat_bloc.dart';
@@ -14,53 +19,64 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   // Is this the correct approach here to do it like this?
   late SocketApi socketApi;
+  DatabaseApi databaseApi = DatabaseApi.db;
+
+  
+var textOutput;
+
 
   @override
   void initState() {
     super.initState();
-    // We have already create the bloc in the main. Here, we only once the get
-    // a reference to it
-    SocketApi(context.read<ChatBloc>());
-    socketApi.connect();
+    databaseApi.initDB();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.near_me),
-          onPressed: () {
-            // sending the message with socketapi correct?
-            // Correct!
-            // here we are sending additional info (fromId toId)
-            socketApi.sendMessage('', '', 'message');
-          }),
+      floatingActionButton: FloatingActionButton(onPressed: () {
+        Navigator
+    .of(context)
+    .pushReplacement(new MaterialPageRoute(builder: (BuildContext context) => Chat()));
+      },),
       body: Center(
         child: Column(
           children: [
-            Expanded(
-              child: BlocBuilder<ChatBloc, ChatState>(
-                builder: (BuildContext context, ChatState state) {
-                  // At This point im still struggling getting the data in real time
-                  // im not sure if chatbloc in bloc above is fine
-                  // im not sure how to call the messages and messages length below here
-                  if (state is GetConversationEvent) {
-                    // <-- You might want to correct the name here!!! State instead of Event... I guess a copy paste trick ;P
-                    return ListView.builder(
-                      itemCount: state.conversation.length, //<-- get the length
-                      itemBuilder: ((context, index) {
-                        return Text(
-                          state.conversation[index].message.toString(),
-                        );
-                      }),
-                    );
-                  } else {
-                    return const CircularProgressIndicator();
-                  }
-                },
-              ),
-              // child:
-            ),
+            SizedBox(height: 80,),
+            TextButton(
+              onPressed: (() async {
+                 final res = await databaseApi.getUsers(); 
+                 setState(() {
+                   textOutput = res;
+                 });
+                 
+              }),
+              child: Text('Get Users'),),
+              TextButton(
+              onPressed: (() async {
+                ChatUser mockData = ChatUser(id: 2, socketId: 142123, userName: 'User B');
+                
+                 final res = await databaseApi.insertUser(mockData); 
+                 setState(() {
+                   textOutput = 'User created';
+                 });
+                 
+              }),
+              child: Text('Create random User'),),
+
+              TextButton(
+              onPressed: (() async {
+             
+                final user = ChatUser(id: 1, socketId: 1, userName: 'Marcel');
+                 final res = await databaseApi.updateSocketId(user); 
+                 setState(() {
+                   textOutput = 'Updated socket Id of user';
+                 });
+                 
+              }),
+              child: Text('Update socket id'),),
+
+              Text(textOutput != null ?  textOutput.toString() : '')
           ],
         ),
       ),

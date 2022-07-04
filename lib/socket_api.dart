@@ -1,6 +1,8 @@
+import 'package:flutter_bloc_socket/database_api.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 
 import 'bloc/chat/chat_bloc.dart';
+import 'models/chat_user.dart';
 import 'models/message_model.dart';
 
 // In this file it would help me a lot if you could explain me each line, since
@@ -11,16 +13,20 @@ import 'models/message_model.dart';
 
 class SocketApi {
   late Socket socket;
+  late ChatUser user;
+
   ChatBloc chatBloc = ChatBloc();
 
   static final SocketApi _socketApi = SocketApi._internal();
 
-  factory SocketApi(
-    ChatBloc chatBloc,
-    // you can pass here all data that you need to access. For example:
-    // User user <-- might be helpful to send some user data...
-  ) {
+  factory SocketApi(ChatBloc chatBloc, ChatUser user
+
+      // you can pass here all data that you need to access. For example:
+      // User user <-- might be helpful to send some user data...
+      ) {
     _socketApi.chatBloc = chatBloc;
+    _socketApi.user = user;
+    print('user in socket api ${user}'); // <--- How to retrieve the user here? what am I missing here?
     return _socketApi;
   }
 
@@ -40,12 +46,13 @@ class SocketApi {
       // them to server. Here we are mostly interested in the socketId. We can
       // also send user.id or any information related to the user and which can
       // help us double check that we are indeed targeting to right user!
+
       socket.on('connect', (_) {
         socket.emit('addUser', {
           "socketId": socket.id,
-          "id": 'user.id', //<-- this is the current user's id (not socketId)
-          "userName": 'user.firstName', // <-- current user firsName
-          "isOnline": true,
+          "id": user.id, //<-- this is the current user's id (not socketId)
+          "userName": user.userName, // <-- current user firsName
+          // "isOnline": true,
         });
       });
 
@@ -55,9 +62,9 @@ class SocketApi {
       socket.on('reconnect', (_) {
         socket.emit('addUser', {
           "socketId": socket.id,
-          "id": 'user.id',
-          "userName": 'user.firstName',
-          "isOnline": true,
+          "id": user.id,
+          "userName": user.userName,
+          // "isOnline": true,
         });
       });
 
