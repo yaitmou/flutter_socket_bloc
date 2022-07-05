@@ -34,7 +34,10 @@ var textOutput;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(onPressed: () {
+      floatingActionButton: TextButton(
+        style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.amber)),
+        child: Text('Start as hardcoded User', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),),
+        onPressed: () {
         Navigator
     .of(context)
     .pushReplacement(new MaterialPageRoute(builder: (BuildContext context) => Chat()));

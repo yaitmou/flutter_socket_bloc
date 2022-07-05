@@ -4,6 +4,7 @@ import 'package:flutter_bloc_socket/socket_api.dart';
 import 'package:meta/meta.dart';
 
 import '../../database_api.dart';
+import '../../models/chat_user.dart';
 import '../../models/message_model.dart';
 
 part 'chat_event.dart';
@@ -16,15 +17,27 @@ final DatabaseApi dbApi;
        this.dbApi,
       )
       : super(ChatInitialState()) {
-    on<ChatEvent>((event, emit) {
+    on<ChatEvent>((event, emit) async {
       if (event is LoadChatEvent) {
         emit(ChatLoadingState());
         //List<Message> apiResult = socketApi. <-- fetch conversation
         // if(apiResult == 0){
         //   emit(ChatErrorState());
         // }
+      } 
+
+      else if (event is LoadChatPartnersEvent){
+        emit(ChatPartnersLoadingState());
+        List<ChatUser> apiResult = await dbApi.getUsers();
+        print('chatbloc user list: ${apiResult}');
+        // if(apiResult == 0){
+        //   emit(ChatPartnersErrorState());
+        // }
+        emit(ChatPartnersLoadedState(conversationPartners: apiResult));
+      
+        
       } else {
-        // emit(ChatLoadedState(conversation: conversation))
+        
       }
     });
   }

@@ -5,3 +5,5 @@ abstract class ChatEvent {}
 
 class LoadChatEvent extends ChatEvent {}
 
+class LoadChatPartnersEvent extends ChatEvent{}
+

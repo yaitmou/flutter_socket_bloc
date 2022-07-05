@@ -51,14 +51,17 @@ class DatabaseApi {
     // Query the table for all The Dogs.
     final List<Map<String, dynamic>> maps = await db.query('ChatUser');
 
+   
+
     // Convert the List<Map<String, dynamic> into a List<Dog>.
-    return List.generate(maps.length, (i) {
+    final res = List.generate(maps.length, (i) {
       return ChatUser(
         id: maps[i]['id'],
         socketId: maps[i]['socketId'],
         userName: maps[i]['userName'],
       );
     });
+    return res;
   }
 
   Future<ChatUser> getUser(userId) async {

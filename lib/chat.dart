@@ -49,40 +49,54 @@ class _ChatState extends State<Chat> {
       body: Center(
         child: Column(
           children: [
-            // Expanded(
-            //   child: BlocBuilder<ChatBloc, ChatState>(
-            //     builder: (BuildContext context, ChatState state) {
-            //       if(state is ChatInitialState){
-            //         context.read()<ChatBloc>().add(LoadChatEvent());
-            //         return const CircularProgressIndicator();
-            //       } else if(state is ChatLoadingState){
-            //         return const CircularProgressIndicator();
-            //       } else if(state is ChatLoadedState){
-            //         return const Text('data loaded');
-            //       } else if(state is ChatErrorState){
-            //         return const Text('There was an error');
-            //       }
-            //       return const Text('something went wrong');
-            //       // if (state is ChatL) {
-            //       //   // <-- You might want to correct the name here!!! State instead of Event... I guess a copy paste trick ;P
-            //       //   return ListView.builder(
-            //       //     itemCount: state.conversation.length, //<-- get the length
-            //       //     itemBuilder: ((context, index) {
-            //       //       return Text(
-            //       //         state.conversation[index].message.toString(),
-            //       //       );
-            //       //     }),
-            //       //   );
-            //       // } else {
-            //       //   return const CircularProgressIndicator();
-            //       // }
-            //     },
-            //   ),
-            //   // child:
-            // ),
+            Expanded(
+              child: BlocBuilder<ChatBloc, ChatState>(
+                builder: (BuildContext context, ChatState state) {
+                  if(state is ChatInitialState){
+                    context.read<ChatBloc>().add(LoadChatPartnersEvent());
+                    return const Center(child: CircularProgressIndicator());
+                  } else if(state is ChatPartnersLoadingState){
+                    return const Center(child: CircularProgressIndicator());
+                  } else if(state is ChatPartnersLoadedState){
+                    return buildChatPartnersList(state.conversationPartners);
+                  } else if(state is ChatPartnersErrorState){
+                    return const Center(child: Text('There was an error'));
+                  }
+                  return const Center(child: Text('something went wrong'));
+                },
+              ),
+              // child:
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+
+Widget buildChatPartnersList(List<ChatUser> conversationPartners) {
+  return ListView.builder(
+    itemCount: conversationPartners.length,
+    itemBuilder: ((context, index) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+      child: Container(
+        height: 100,
+        color: Colors.grey.withOpacity(0.2),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          
+          children: [
+        Text(conversationPartners[index].userName),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+          Text('socket id: ${conversationPartners[index].socketId}'),
+          Text('id: ${conversationPartners[index].id}'),
+        ],)
+        ]),),
+    );
+  }));
 }
