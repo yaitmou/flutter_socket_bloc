@@ -54,6 +54,8 @@ class SocketApi {
           "userName": user.userName, // <-- current user firsName
           // "isOnline": true,
         });
+        final updateUser = ChatUser(id: user.id, socketId: socket.id!, userName: user.userName);
+        chatBloc.dbApi.updateSocketId(updateUser);
       });
 
       //? Reconnected

@@ -54,7 +54,7 @@ var textOutput;
               child: Text('Get Users'),),
               TextButton(
               onPressed: (() async {
-                ChatUser mockData = ChatUser(id: 2, socketId: 142123, userName: 'User B');
+                ChatUser mockData = ChatUser(id: 1, socketId: '453643543', userName: 'User A');
                 
                  final res = await databaseApi.insertUser(mockData); 
                  setState(() {
@@ -67,7 +67,7 @@ var textOutput;
               TextButton(
               onPressed: (() async {
              
-                final user = ChatUser(id: 1, socketId: 1, userName: 'Marcel');
+                final user = ChatUser(id: 1, socketId: '1', userName: 'Marcel');
                  final res = await databaseApi.updateSocketId(user); 
                  setState(() {
                    textOutput = 'Updated socket Id of user';

@@ -14,7 +14,7 @@
 
 class ChatUser {
   int id;
-  int socketId;
+  String socketId;
   String userName;
   // String isOnline;
 
@@ -39,7 +39,7 @@ class ChatUser {
    factory ChatUser.fromMap(Map<String, dynamic> map) {
     return ChatUser(
       id: map['id'] as int,
-      socketId: map['socketId'] as int,
+      socketId: map['socketId'] as String,
       userName: map['userName'] as String,
     );
   }

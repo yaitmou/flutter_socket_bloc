@@ -13,10 +13,10 @@ class DatabaseApi {
   Future<Database> initDB() async {
     print('_init database');
     return await openDatabase(
-      join(await getDatabasesPath(), 'database_name.db'),
+      join(await getDatabasesPath(), 'database.db'),
       onCreate: (db, version) {
         db.execute(
-          "CREATE TABLE ChatUser(id INTEGER PRIMARY KEY, socketId INTEGER, userName TEXT);",
+          "CREATE TABLE ChatUser(id INTEGER PRIMARY KEY, socketId TEXT, userName TEXT);",
         );
       },
       version: 1,
