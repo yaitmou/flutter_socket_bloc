@@ -15,7 +15,7 @@ class SocketApi {
   late Socket socket;
   late ChatUser user;
 
-  ChatBloc chatBloc = ChatBloc();
+  ChatBloc chatBloc = ChatBloc(DatabaseApi.db);
 
   static final SocketApi _socketApi = SocketApi._internal();
 

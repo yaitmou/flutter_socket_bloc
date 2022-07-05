@@ -91,7 +91,7 @@ class DatabaseApi {
       user.toMap(),
       // Ensure that the Dog has a matching id.
       where: 'id = ?',
-      // Pass the Dog's id as a whereArg to prevent SQL injection.
+      // Pass the user's id as a whereArg to prevent SQL injection.
       whereArgs: [user.id],
     );
   }

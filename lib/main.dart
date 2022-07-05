@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_bloc_socket/database_api.dart';
 
 import 'bloc/chat/chat_bloc.dart';
 import 'home.dart';
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<ChatBloc>(
-      create: (BuildContext context) => ChatBloc(),
+      create: (BuildContext context) => ChatBloc(DatabaseApi.db),
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(

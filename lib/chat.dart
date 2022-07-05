@@ -46,8 +46,6 @@ class _ChatState extends State<Chat> {
             // here we are sending additional info (fromId toId)
             socketApi.sendMessage('', '', 'message');
 
-            //await databaseApi.insertUser(mockUser);
-            //final res =await databaseApi.getUsers();
           }),
       body: Center(
         child: Column(
@@ -55,22 +53,30 @@ class _ChatState extends State<Chat> {
             Expanded(
               child: BlocBuilder<ChatBloc, ChatState>(
                 builder: (BuildContext context, ChatState state) {
-                  // At This point im still struggling getting the data in real time
-                  // im not sure if chatbloc in bloc above is fine
-                  // im not sure how to call the messages and messages length below here
-                  if (state is GetConversationEvent) {
-                    // <-- You might want to correct the name here!!! State instead of Event... I guess a copy paste trick ;P
-                    return ListView.builder(
-                      itemCount: state.conversation.length, //<-- get the length
-                      itemBuilder: ((context, index) {
-                        return Text(
-                          state.conversation[index].message.toString(),
-                        );
-                      }),
-                    );
-                  } else {
+                  if(state is ChatInitialState){
+                    context.read()<ChatBloc>().add(LoadChatEvent());
                     return const CircularProgressIndicator();
+                  } else if(state is ChatLoadingState){
+                    return const CircularProgressIndicator();
+                  } else if(state is ChatLoadedState){
+                    return const Text('data loaded');
+                  } else if(state is ChatErrorState){
+                    return const Text('There was an error');
                   }
+                  return const Text('something went wrong');
+                  // if (state is ChatL) {
+                  //   // <-- You might want to correct the name here!!! State instead of Event... I guess a copy paste trick ;P
+                  //   return ListView.builder(
+                  //     itemCount: state.conversation.length, //<-- get the length
+                  //     itemBuilder: ((context, index) {
+                  //       return Text(
+                  //         state.conversation[index].message.toString(),
+                  //       );
+                  //     }),
+                  //   );
+                  // } else {
+                  //   return const CircularProgressIndicator();
+                  // }
                 },
               ),
               // child:

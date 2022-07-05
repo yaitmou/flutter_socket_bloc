@@ -3,11 +3,13 @@ part of 'chat_bloc.dart';
 @immutable
 abstract class ChatState {}
 
-class ChatInitial extends ChatState {}
+class ChatInitialState extends ChatState {}
 
-class GetConversationEvent extends ChatState {
+class ChatLoadingState extends ChatState {}
+
+class ChatLoadedState extends ChatState {
   List<Message> conversation;
-  GetConversationEvent(this.conversation);
+  ChatLoadedState({required this.conversation});
 }
 
-// Im really not familiar with bloc yet, is this fine here?
+class ChatErrorState {}
