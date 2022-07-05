@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_bloc_socket/apis/database_api.dart';
+import 'package:flutter_bloc_socket/chat_detail.dart';
 import 'package:flutter_bloc_socket/models/chat_user.dart';
 import 'package:flutter_bloc_socket/apis/socket_api.dart';
 
@@ -20,46 +21,52 @@ class _ChatState extends State<Chat> {
   late ChatUser user;
   var currentUser;
 
-
   @override
   Widget build(BuildContext context) {
-
     getUser() async {
-    currentUser = await databaseApi.getUser(1);
-    print('User print : ${currentUser}');
-    return currentUser;
-  }
+      currentUser = await databaseApi.getUser(1);
+      print('User print : ${currentUser}');
+      return currentUser;
+    }
 
-  getUser().then((value) {
-    print(value);
-    socketApi = SocketApi(context.read<ChatBloc>(), value);
-    socketApi.connect();
-  },);
+    getUser().then(
+      (value) {
+        print(value);
+        socketApi = SocketApi(context.read<ChatBloc>(), value);
+        socketApi.connect();
+      },
+    );
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.near_me),
-          onPressed: () async {
-            // sending the message with socketapi correct?
-            // Correct!
-            // here we are sending additional info (fromId toId)
-            socketApi.sendMessage('', '', 'message');
-
-          }),
+      appBar: AppBar(
+  // iconTheme: IconThemeData(
+  //   color: Colors.black, //change your color here
+  // ),
+  title: Text("Chatlist of XXX"),
+  centerTitle: true,
+),
+      // floatingActionButton: FloatingActionButton(
+      //     child: const Icon(Icons.near_me),
+      //     onPressed: () async {
+      //       // sending the message with socketapi correct?
+      //       // Correct!
+      //       // here we are sending additional info (fromId toId)
+      //       socketApi.sendMessage('', '', 'message');
+      //     }),
       body: Center(
         child: Column(
           children: [
             Expanded(
               child: BlocBuilder<ChatBloc, ChatState>(
                 builder: (BuildContext context, ChatState state) {
-                  if(state is ChatInitialState){
+                  if (state is ChatInitialState) {
                     context.read<ChatBloc>().add(LoadChatPartnersEvent());
                     return const Center(child: CircularProgressIndicator());
-                  } else if(state is ChatPartnersLoadingState){
+                  } else if (state is ChatPartnersLoadingState) {
                     return const Center(child: CircularProgressIndicator());
-                  } else if(state is ChatPartnersLoadedState){
+                  } else if (state is ChatPartnersLoadedState) {
                     return buildChatPartnersList(state.conversationPartners);
-                  } else if(state is ChatPartnersErrorState){
+                  } else if (state is ChatPartnersErrorState) {
                     return const Center(child: Text('There was an error'));
                   }
                   return const Center(child: Text('something went wrong'));
@@ -74,29 +81,36 @@ class _ChatState extends State<Chat> {
   }
 }
 
-
 Widget buildChatPartnersList(List<ChatUser> conversationPartners) {
   return ListView.builder(
-    itemCount: conversationPartners.length,
-    itemBuilder: ((context, index) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-      child: Container(
-        height: 100,
-        color: Colors.grey.withOpacity(0.2),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          
-          children: [
-        Text(conversationPartners[index].userName),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-          Text('socket id: ${conversationPartners[index].socketId}'),
-          Text('id: ${conversationPartners[index].id}'),
-        ],)
-        ]),),
-    );
-  }));
+      itemCount: conversationPartners.length,
+      itemBuilder: ((context, index) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(new MaterialPageRoute(
+                  builder: (BuildContext context) => ChatDetail()));
+            },
+            child: Container(
+              height: 100,
+              color: Colors.grey.withOpacity(0.2),
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(conversationPartners[index].userName),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                            'socket id: ${conversationPartners[index].socketId}'),
+                        Text('id: ${conversationPartners[index].id}'),
+                      ],
+                    )
+                  ]),
+            ),
+          ),
+        );
+      }));
 }
