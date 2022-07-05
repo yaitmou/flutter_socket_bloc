@@ -1,9 +1,9 @@
-import 'package:flutter_bloc_socket/database_api.dart';
+import 'package:flutter_bloc_socket/apis/database_api.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 
-import 'bloc/chat/chat_bloc.dart';
-import 'models/chat_user.dart';
-import 'models/message_model.dart';
+import '../bloc/chat/chat_bloc.dart';
+import '../models/chat_user.dart';
+import '../models/message_model.dart';
 
 // In this file it would help me a lot if you could explain me each line, since
 // im not really understanding much here. It seems to work fine actually but I

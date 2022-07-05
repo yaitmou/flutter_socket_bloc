@@ -1,7 +1,7 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'models/chat_user.dart';
+import '../models/chat_user.dart';
 
 class DatabaseApi {
   DatabaseApi._();

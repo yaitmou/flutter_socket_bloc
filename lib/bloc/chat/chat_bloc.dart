@@ -1,9 +1,9 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:bloc/bloc.dart';
-import 'package:flutter_bloc_socket/socket_api.dart';
+import 'package:flutter_bloc_socket/apis/socket_api.dart';
 import 'package:meta/meta.dart';
 
-import '../../database_api.dart';
+import '../../apis/database_api.dart';
 import '../../models/chat_user.dart';
 import '../../models/message_model.dart';
 

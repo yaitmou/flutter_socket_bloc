@@ -3,9 +3,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_bloc_socket/chat.dart';
-import 'package:flutter_bloc_socket/database_api.dart';
+import 'package:flutter_bloc_socket/apis/database_api.dart';
 import 'package:flutter_bloc_socket/models/chat_user.dart';
-import 'package:flutter_bloc_socket/socket_api.dart';
+import 'package:flutter_bloc_socket/apis/socket_api.dart';
 
 import 'bloc/chat/chat_bloc.dart';
 
