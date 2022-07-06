@@ -56,6 +56,7 @@ class SocketApi {
         });
         final updateUser = ChatUser(id: user.id, socketId: socket.id!, userName: user.userName);
         chatBloc.dbApi.updateSocketId(updateUser);
+        chatBloc.add(LoadChatPartnersEvent());
       });
 
       //? Reconnected
@@ -70,6 +71,7 @@ class SocketApi {
         });
         final updateUser = ChatUser(id: user.id, socketId: socket.id!, userName: user.userName);
         chatBloc.dbApi.updateSocketId(updateUser);
+        chatBloc.add(LoadChatPartnersEvent());
       });
 
       //! Error

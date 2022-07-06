@@ -1,6 +1,6 @@
-# chat.dart
-- We are displaying the socket id here, unfortunately the UI is showing the old socket id, the new socket id has to be refreshed for the UI in some way. Could you check this please?
-- From line [27] is there a better approach? I first tried to wrap it in initstate but then I always got null on my user object
+# socket_api.dart
+- I managed to update the [socketId] and display the new one in the ui by adding [chatBloc.add(LoadChatPartnersEvent());] on line [59] and [74]. is there a better appraoch than calling this event if we are focusing on performance? Also why is it actually working without using the [Equatable] package? Can you explain me a use case where the package is needed?
+- I have to call in line [57] and [58]  [chatBloc.dbApi.updateSocketId(updateUser);] then [chatBloc.add(LoadChatPartnersEvent();] is this correct or do i have to call such functions like [chatBloc.dbApi.updateSocketId(updateUser);] in my [chat_bloc.dart] ?
 
 # main.dart
 line [18]. Is it correct that I always have to pass an instance now? Could you explain me this pattern a little bit more? I also needed to pass it on line [18] in [socket_api.dart]
