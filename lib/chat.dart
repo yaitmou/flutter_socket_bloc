@@ -1,48 +1,66 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_bloc_socket/apis/database_api.dart';
+import 'package:flutter_bloc_socket/apis/socket_api.dart';
 import 'package:flutter_bloc_socket/chat_detail.dart';
 import 'package:flutter_bloc_socket/models/chat_user.dart';
-import 'package:flutter_bloc_socket/apis/socket_api.dart';
 
 import 'bloc/chat/chat_bloc.dart';
 
 class Chat extends StatefulWidget {
-  const Chat({Key? key}) : super(key: key);
+  final String username;
+  const Chat(
+    @required this.username,
+  );
 
   @override
   State<Chat> createState() => _ChatState();
 }
 
 class _ChatState extends State<Chat> {
+ 
+
   // Is this the correct approach here to do it like this?
   late SocketApi socketApi;
   DatabaseApi databaseApi = DatabaseApi.db;
-  late ChatUser user;
+  User user = User(id: 0, socketId: '', userName: '');
   var currentUser;
 
-  @override
-  Widget build(BuildContext context) {
-    getUser() async {
-      currentUser = await databaseApi.getUser(1);
+  getUser() async {
+      currentUser = await databaseApi.getUserByName(widget.username);
       print('User print : ${currentUser}');
       return currentUser;
     }
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
     getUser().then(
       (value) {
-        print(value);
+        setState(() {
+          user = value;
+        });
         socketApi = SocketApi(context.read<ChatBloc>(), value);
         socketApi.connect();
       },
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    
+
+    
 
     return Scaffold(
       appBar: AppBar(
   // iconTheme: IconThemeData(
   //   color: Colors.black, //change your color here
   // ),
-  title: Text("Chatlist of XXX"),
+  title: Text("Chatlist of ${user.userName}"),
   centerTitle: true,
 ),
       // floatingActionButton: FloatingActionButton(
@@ -81,7 +99,7 @@ class _ChatState extends State<Chat> {
   }
 }
 
-Widget buildChatPartnersList(List<ChatUser> conversationPartners) {
+Widget buildChatPartnersList(List<User> conversationPartners) {
   return ListView.builder(
       itemCount: conversationPartners.length,
       itemBuilder: ((context, index) {
@@ -90,7 +108,7 @@ Widget buildChatPartnersList(List<ChatUser> conversationPartners) {
           child: GestureDetector(
             onTap: () {
               Navigator.of(context).push(new MaterialPageRoute(
-                  builder: (BuildContext context) => ChatDetail()));
+                  builder: (BuildContext context) => ChatDetail(conversationPartners[index].userName)));
             },
             child: Container(
               height: 100,

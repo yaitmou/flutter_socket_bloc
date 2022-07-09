@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 
 class ChatDetail extends StatelessWidget {
-  const ChatDetail({Key? key}) : super(key: key);
-
+  const ChatDetail(final this.userName, {Key? key}) : super(key: key);
+  final String userName;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-  iconTheme: IconThemeData(
-    color: Colors.black, //change your color here
-  ),
-  title: Text("Chatpartner Name"),
-  centerTitle: true,
-),
-      body: Center(
+        iconTheme: const IconThemeData(
+          color: Colors.black, //change your color here
+        ),
+        title: Text(userName),
+        centerTitle: true,
+      ),
+      body: const Center(
         child: Text('Silence here at the moment'),
       ),
     );

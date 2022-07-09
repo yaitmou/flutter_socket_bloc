@@ -21,7 +21,7 @@ class ChatErrorState {}
 class ChatPartnersLoadingState extends ChatState {}
 
 class ChatPartnersLoadedState extends ChatState {
-  List<ChatUser> conversationPartners;
+  List<User> conversationPartners;
   ChatPartnersLoadedState({required this.conversationPartners});
 }
 

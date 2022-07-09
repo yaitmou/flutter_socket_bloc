@@ -13,13 +13,13 @@ import '../models/message_model.dart';
 
 class SocketApi {
   late Socket socket;
-  late ChatUser user;
+  late User user;
 
   ChatBloc chatBloc = ChatBloc(DatabaseApi.db);
 
   static final SocketApi _socketApi = SocketApi._internal();
 
-  factory SocketApi(ChatBloc chatBloc, ChatUser user
+  factory SocketApi(ChatBloc chatBloc, User user
 
       // you can pass here all data that you need to access. For example:
       // User user <-- might be helpful to send some user data...
@@ -54,7 +54,7 @@ class SocketApi {
           "userName": user.userName, // <-- current user firsName
           // "isOnline": true,
         });
-        final updateUser = ChatUser(id: user.id, socketId: socket.id!, userName: user.userName);
+        final updateUser = User(id: user.id, socketId: socket.id!, userName: user.userName);
         chatBloc.dbApi.updateSocketId(updateUser);
         chatBloc.add(LoadChatPartnersEvent());
       });
@@ -69,7 +69,7 @@ class SocketApi {
           "userName": user.userName,
           // "isOnline": true,
         });
-        final updateUser = ChatUser(id: user.id, socketId: socket.id!, userName: user.userName);
+        final updateUser = User(id: user.id, socketId: socket.id!, userName: user.userName);
         chatBloc.dbApi.updateSocketId(updateUser);
         chatBloc.add(LoadChatPartnersEvent());
       });

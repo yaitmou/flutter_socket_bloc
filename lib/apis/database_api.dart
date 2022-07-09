@@ -24,7 +24,7 @@ class DatabaseApi {
   }
 
   // Define a function that inserts user into the database
-  Future<void> insertUser(ChatUser user) async {
+  Future<void> insertUser(User user) async {
     // // Get a reference to the database.
     // final db = await database;
 
@@ -36,7 +36,7 @@ class DatabaseApi {
     // In this case, replace any previous data.
     await database.insert(
       'ChatUser',
-      ChatUser(userName: user.userName, id: user.id, socketId: user.socketId)
+      User(userName: user.userName, id: user.id, socketId: user.socketId)
           .toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
@@ -44,7 +44,7 @@ class DatabaseApi {
   }
 
 // A method that retrieves all the dogs from the dogs table.
-  Future<List<ChatUser>> getUsers() async {
+  Future<List<User>> getUsers() async {
     // Get a reference to the database.
     final db = await database;
 
@@ -55,7 +55,7 @@ class DatabaseApi {
 
     // Convert the List<Map<String, dynamic> into a List<Dog>.
     final res = List.generate(maps.length, (i) {
-      return ChatUser(
+      return User(
         id: maps[i]['id'],
         socketId: maps[i]['socketId'],
         userName: maps[i]['userName'],
@@ -64,7 +64,7 @@ class DatabaseApi {
     return res;
   }
 
-  Future<ChatUser> getUser(userId) async {
+  Future<User> getUserById(userId) async {
     // Get a reference to the database.
     final db = await database;
 
@@ -79,12 +79,32 @@ class DatabaseApi {
       limit: 1,
     );
     for (var n in res) {
-      finalUser = ChatUser.fromMap(n);
+      finalUser = User.fromMap(n);
     }
     return finalUser;
   }
 
-  Future<void> updateSocketId(ChatUser user) async {
+  Future<User> getUserByName(String userName) async {
+    // Get a reference to the database.
+    final db = await database;
+
+    // Query the table for all The Dogs.
+    final List<Map<String, dynamic>> maps = await db.query('ChatUser');
+    var finalUser;
+
+    final res = await db.query(
+      'ChatUser',
+      where: 'userName = ?',
+      whereArgs: [userName],
+      limit: 1,
+    );
+    for (var n in res) {
+      finalUser = User.fromMap(n);
+    }
+    return finalUser;
+  }
+
+  Future<void> updateSocketId(User user) async {
     // Get a reference to the database.
     final db = await database;
 

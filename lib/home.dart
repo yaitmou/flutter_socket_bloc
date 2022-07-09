@@ -21,68 +21,117 @@ class _HomeState extends State<Home> {
   late SocketApi socketApi;
   DatabaseApi databaseApi = DatabaseApi.db;
 
-  
-var textOutput;
-
+  var textOutput;
 
   @override
   void initState() {
     super.initState();
     databaseApi.initDB();
+
+    // Start listening to changes.
+  myController.addListener(_printLatestValue);
   }
+
+  final myController = TextEditingController();
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is removed from the
+    // widget tree.
+    myController.dispose();
+    super.dispose();
+  }
+
+  void _printLatestValue() {
+  print('Second text field: ${myController.text}');
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: TextButton(
-        style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.amber)),
-        child: Text('Start as hardcoded User', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),),
-        onPressed: () {
-        Navigator
-    .of(context)
-    .pushReplacement(new MaterialPageRoute(builder: (BuildContext context) => Chat()));
-      },),
-      body: Center(
-        child: Column(
-          children: [
-            SizedBox(height: 80,),
-            TextButton(
-              onPressed: (() async {
-                 final res = await databaseApi.getUsers(); 
-                 setState(() {
-                   textOutput = res;
-                 });
-                 
-              }),
-              child: Text('Get Users'),),
+        body: Stack(
+      children: [
+        Center(
+          child: Column(
+            children: [
+              SizedBox(
+                height: 80,
+              ),
               TextButton(
-              onPressed: (() async {
-                ChatUser mockData = ChatUser(id: 1, socketId: '453643543', userName: 'User A');
-                
-                 final res = await databaseApi.insertUser(mockData); 
-                 setState(() {
-                   textOutput = 'User created';
-                 });
-                 
-              }),
-              child: Text('Create random User'),),
-
+                onPressed: (() async {
+                  final res = await databaseApi.getUsers();
+                  setState(() {
+                    textOutput = res;
+                  });
+                }),
+                child: Text('Get Users'),
+              ),
               TextButton(
-              onPressed: (() async {
-             
-                final user = ChatUser(id: 1, socketId: '1', userName: 'Marcel');
-                 final res = await databaseApi.updateSocketId(user); 
-                 setState(() {
-                   textOutput = 'Updated socket Id of user';
-                 });
-                 
-              }),
-              child: Text('Update socket id'),),
+                onPressed: (() async {
+                  User mockData = User(
+                      id: 3, socketId: '32343242', userName: 'User C');
 
-              Text(textOutput != null ?  textOutput.toString() : '')
-          ],
+                  final res = await databaseApi.insertUser(mockData);
+                  setState(() {
+                    textOutput = 'User created';
+                  });
+                }),
+                child: Text('Create random User'),
+              ),
+              TextButton(
+                onPressed: (() async {
+                  final user =
+                      User(id: 1, socketId: '1', userName: 'Marcel');
+                  final res = await databaseApi.updateSocketId(user);
+                  setState(() {
+                    textOutput = 'Updated socket Id of user';
+                  });
+                }),
+                child: Text('Update socket id'),
+              ),
+              Text(textOutput != null ? textOutput.toString() : ''),
+            ],
+          ),
         ),
-      ),
-    );
+        Padding(
+          padding: const EdgeInsets.all(25.0),
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+                padding: EdgeInsets.symmetric(vertical: 2.0),
+                child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  Expanded(
+                    child: TextField(
+                      controller: myController,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Enter Username',
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 35,
+                  ),
+                  TextButton(
+                    
+                    style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.all(Colors.amber)),
+                    child: Text(
+                      'Login',
+                      style: TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                           MaterialPageRoute(
+                              builder: (BuildContext context) =>  Chat(myController.text)));
+                    },
+                  ),
+                ])),
+          ),
+        ),
+      ],
+    ));
   }
 }

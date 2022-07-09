@@ -28,7 +28,7 @@ final DatabaseApi dbApi;
 
       else if (event is LoadChatPartnersEvent){
         emit(ChatPartnersLoadingState());
-        List<ChatUser> apiResult = await dbApi.getUsers();
+        List<User> apiResult = await dbApi.getUsers();
         print('chatbloc user list: ${apiResult}');
         // if(apiResult == 0){
         //   emit(ChatPartnersErrorState());

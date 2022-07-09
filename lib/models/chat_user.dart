@@ -12,16 +12,18 @@
 /// });
 ///
 
-class ChatUser {
+class User {
   int id;
   String socketId;
   String userName;
+  List<User>? contacts;
   // String isOnline;
 
-  ChatUser({
+  User({
     required this.id,
     required this.socketId,
     required this.userName,
+    this.contacts,
     // required this.isOnline
   });
 
@@ -36,11 +38,12 @@ class ChatUser {
   }
 
  
-   factory ChatUser.fromMap(Map<String, dynamic> map) {
-    return ChatUser(
+   factory User.fromMap(Map<String, dynamic> map) {
+    return User(
       id: map['id'] as int,
       socketId: map['socketId'] as String,
       userName: map['userName'] as String,
+      contacts: map['contacts'] as List<User>?,
     );
   }
 
