@@ -30,6 +30,7 @@ class _ChatState extends State<Chat> {
   var currentUser;
 
   getUser() async {
+    print('getUser ${widget.username}');
       currentUser = await auth.authenticate(widget.username);
       print('User print : ${currentUser}');
       return currentUser;

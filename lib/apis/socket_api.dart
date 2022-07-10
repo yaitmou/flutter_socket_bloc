@@ -2,8 +2,10 @@ import 'package:flutter_bloc_socket/apis/database_api.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 
 import '../bloc/chat/chat_bloc.dart';
+import '../models/chat_message.dart';
 import '../models/chat_user.dart';
-import '../models/message_model.dart';
+import 'dart:io' show Platform;
+
 
 // In this file it would help me a lot if you could explain me each line, since
 // im not really understanding much here. It seems to work fine actually but I
@@ -36,8 +38,9 @@ class SocketApi {
   // Whatever is encapsulated here is called only at the instance creation. and
   // since this is a singleton, this is called only once!
   SocketApi._internal() {
+    
     try {
-      socket = io('http://127.0.0.1:3000', <String, dynamic>{
+      socket = io(Platform.isAndroid ? 'ws://10.0.2.2:3000' : 'http://127.0.0.1:3000', <String, dynamic>{
         'transports': ['websocket'],
         'autoConnect': false,
       });
@@ -112,30 +115,38 @@ class SocketApi {
   /// however you should call the [emitWithAck] to trigger the ui to update
   /// after the message has, indeed, completed successfully...
   sendMessage(String fromUserId, String toUserId, String message) {
-    final message = <String, dynamic>{};
-    message['fromUserId'] = fromUserId;
-    message['toUserId'] = toUserId;
-    message['message'] = message;
+    final Message sendMessage = Message(fromUserId: fromUserId, toUserId: toUserId, message: message);
+    final Map<String, dynamic> map = sendMessage.toMap();
 
-    socket.emitWithAck(
+    print(map);
+
+    socket.emit(
       'message',
-      message,
-      ack: (data) {
-        // here you can do what ever you ant with the data you get back from the
-        // server. Here we are just sending a confirmation to the UI to show the
-        // sent message... This is a pessimistic approach. you can instead go with
-        // the optimistic approach and display the sent message in the UI without
-        // confirmation then delete it if the message was not sent for whatever
-        // raison
+      map
+      //  {
+      //   // here you can do what ever you ant with the data you get back from the
+      //   // server. Here we are just sending a confirmation to the UI to show the
+      //   // sent message... This is a pessimistic approach. you can instead go with
+      //   // the optimistic approach and display the sent message in the UI without
+      //   // confirmation then delete it if the message was not sent for whatever
+      //   // raison
 
-        // chatBloc.add(
-        // ChatMessageSent(
-        //   fromUserId: fromUserId,
-        //   toUserId: toUserId,
-        //   content: message,
-        // ),
-        // );
-      },
+      //   // chatBloc.add(
+      //   // ChatMessageSent(
+      //   //   fromUserId: fromUserId,
+      //   //   toUserId: toUserId,
+      //   //   content: message,
+      //   // ),
+      //   // );
+      //   print('object')
+      //   //print('object $data');
+
+      //   //chatBloc.add(ConversationAddMessageToConversationEvent(message: Message(fromUserId: data)));
+        
+      //   //print('inside emitWithAck ${sendMessage}');
+      // },
     );
+
+    chatBloc.add(ConversationAddMessageToConversationEvent(message: sendMessage));
   }
 }

@@ -13,19 +13,24 @@
 ///
 
 class User {
-  int id;
-  String socketId;
-  String userName;
-  List<User>? contacts;
+  final int id;
+  final String socketId;
+  final String userName;
+  // List<User>? contacts;
   // String isOnline;
 
-  User({
+  const User({
     required this.id,
     required this.socketId,
     required this.userName,
-    this.contacts,
+    // this.contacts,
     // required this.isOnline
   });
+
+  static const empty = User(id: 0, socketId: 'emptySocket', userName: 'emptyUserName');
+ 
+  bool get isEmpty => this == User.empty;
+  bool get isNotEmpty => this != User.empty;
 
 // Convert a Dog into a Map. The keys must correspond to the names of the
   // columns in the database.
@@ -43,7 +48,7 @@ class User {
       id: map['id'] as int,
       socketId: map['socketId'] as String,
       userName: map['userName'] as String,
-      contacts: map['contacts'] as List<User>?,
+      // contacts: map['contacts'] as List<User>?,
     );
   }
 
