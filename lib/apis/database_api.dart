@@ -1,7 +1,9 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../bloc/chat/chat_bloc.dart';
 import '../models/chat_user.dart';
+import 'authentification.dart';
 
 class DatabaseApi {
   DatabaseApi._();
@@ -10,18 +12,31 @@ class DatabaseApi {
   static Database? _database;
   Future<Database> get database async => _database ??= await initDB();
 
+   Auth auth = Auth.auth;
+
+  // static User? _authUser;
+  // Future<User> get authUser async => user;
+
   Future<Database> initDB() async {
     print('_init database');
     return await openDatabase(
-      join(await getDatabasesPath(), 'database.db'),
+      join(await getDatabasesPath(), 'database24.db'),
+      // onConfigure: _onConfigure,
       onCreate: (db, version) {
         db.execute(
-          "CREATE TABLE ChatUser(id INTEGER PRIMARY KEY, socketId TEXT, userName TEXT);",
+          "CREATE TABLE chatuser(id INTEGER PRIMARY KEY, socketId TEXT, userName TEXT);",
+        );
+        db.execute(
+          "CREATE TABLE contacts(userId INTEGER, partnerId INTEGER);",
         );
       },
       version: 1,
     );
   }
+
+//   static Future _onConfigure(Database db) async {
+//     await db.execute('PRAGMA foreign_keys = ON');
+// }
 
   // Define a function that inserts user into the database
   Future<void> insertUser(User user) async {
@@ -35,7 +50,7 @@ class DatabaseApi {
     //
     // In this case, replace any previous data.
     await database.insert(
-      'ChatUser',
+      'chatuser',
       User(userName: user.userName, id: user.id, socketId: user.socketId)
           .toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
@@ -49,7 +64,7 @@ class DatabaseApi {
     final db = await database;
 
     // Query the table for all The Dogs.
-    final List<Map<String, dynamic>> maps = await db.query('ChatUser');
+    final List<Map<String, dynamic>> maps = await db.query('chatuser');
 
    
 
@@ -69,7 +84,7 @@ class DatabaseApi {
     final db = await database;
 
     // Query the table for all The Dogs.
-    final List<Map<String, dynamic>> maps = await db.query('ChatUser');
+    final List<Map<String, dynamic>> maps = await db.query('chatuser');
     var finalUser;
 
     final res = await db.query(
@@ -89,11 +104,11 @@ class DatabaseApi {
     final db = await database;
 
     // Query the table for all The Dogs.
-    final List<Map<String, dynamic>> maps = await db.query('ChatUser');
+    final List<Map<String, dynamic>> maps = await db.query('chatuser');
     var finalUser;
 
     final res = await db.query(
-      'ChatUser',
+      'chatuser',
       where: 'userName = ?',
       whereArgs: [userName],
       limit: 1,
@@ -110,12 +125,65 @@ class DatabaseApi {
 
     // Update the given user.
     await db.update(
-      'ChatUser',
+      'chatuser',
       user.toMap(),
       // Ensure that the Dog has a matching id.
       where: 'id = ?',
       // Pass the user's id as a whereArg to prevent SQL injection.
       whereArgs: [user.id],
     );
+  }
+
+  Future<void> testfunction() async {
+    print('testfunction says : ${auth.currentUser}');
+final db = await database;
+    final List<Map<String, dynamic>> maps = await db.rawQuery('SELECT * FROM contacts');
+
+    final res = List.generate(maps.length, (i) {
+      return print(maps[i].entries);
+    });
+    print(res);
+   
+
+  }
+
+  Future<void> addContact(int partnerId) async {
+    final db = await database;
+
+    
+    
+     await db.insert(
+      'contacts',
+      {'userId': auth.currentUser.id,
+      'partnerId': partnerId},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    await db.insert(
+      'contacts',
+      {'userId':partnerId,
+      'partnerId':  auth.currentUser.id},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<User>> getContacts() async {
+    final db = await database;
+
+    //final List<Map<String, dynamic>> maps = await db.query('ChatUser');
+    //var contacts;
+    // rawQuery('SELECT * FROM chatuser WHERE id = (SELECT partnerId FROM contacts WHERE chatuser_id = ${auth.currentUser.id})');
+
+final List<Map<String, dynamic>> maps = await db.rawQuery('SELECT * FROM chatuser JOIN contacts ON chatuser.id = contacts.userId WHERE contacts.partnerId = ${auth.currentUser.id}');
+ print('map print $maps');
+    final res = List.generate(maps.length, (i) {
+      return User(
+        id: maps[i]['id'],
+        socketId: maps[i]['socketId'],
+        userName: maps[i]['userName'],
+      );
+    });
+    print(res);
+    return res;
+    
   }
 }

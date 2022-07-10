@@ -6,6 +6,7 @@ import 'package:flutter_bloc_socket/apis/socket_api.dart';
 import 'package:flutter_bloc_socket/chat_detail.dart';
 import 'package:flutter_bloc_socket/models/chat_user.dart';
 
+import 'apis/authentification.dart';
 import 'bloc/chat/chat_bloc.dart';
 
 class Chat extends StatefulWidget {
@@ -24,11 +25,12 @@ class _ChatState extends State<Chat> {
   // Is this the correct approach here to do it like this?
   late SocketApi socketApi;
   DatabaseApi databaseApi = DatabaseApi.db;
+  Auth auth = Auth.auth;
   User user = User(id: 0, socketId: '', userName: '');
   var currentUser;
 
   getUser() async {
-      currentUser = await databaseApi.getUserByName(widget.username);
+      currentUser = await auth.authenticate(widget.username);
       print('User print : ${currentUser}');
       return currentUser;
     }
@@ -92,6 +94,11 @@ class _ChatState extends State<Chat> {
               ),
               // child:
             ),
+            TextButton(onPressed: () async => await databaseApi.testfunction(), child: Text('test')),
+            TextButton(onPressed: () async => await databaseApi.addContact(1), child: Text('add contact A')),
+            TextButton(onPressed: () async => await databaseApi.addContact(2), child: Text('add contact B')),
+            TextButton(onPressed: () async => await databaseApi.addContact(3), child: Text('add contact C')),
+            TextButton(onPressed: () async => await databaseApi.getContacts(), child: Text('get contacts')),
           ],
         ),
       ),

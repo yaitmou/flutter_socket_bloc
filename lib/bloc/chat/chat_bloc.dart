@@ -13,10 +13,7 @@ part 'chat_state.dart';
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
 final DatabaseApi dbApi;
 
-  ChatBloc(
-       this.dbApi,
-      )
-      : super(ChatInitialState()) {
+  ChatBloc(this.dbApi) : super(ChatInitialState()) {
     on<ChatEvent>((event, emit) async {
       if (event is LoadChatEvent) {
         emit(ChatLoadingState());
@@ -28,7 +25,7 @@ final DatabaseApi dbApi;
 
       else if (event is LoadChatPartnersEvent){
         emit(ChatPartnersLoadingState());
-        List<User> apiResult = await dbApi.getUsers();
+        List<User> apiResult = await dbApi.getContacts();
         print('chatbloc user list: ${apiResult}');
         // if(apiResult == 0){
         //   emit(ChatPartnersErrorState());

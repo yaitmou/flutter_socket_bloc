@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_bloc_socket/chat.dart';
 import 'package:flutter_bloc_socket/apis/database_api.dart';
+import 'package:flutter_bloc_socket/mockdata/mockdata.dart';
 import 'package:flutter_bloc_socket/models/chat_user.dart';
 import 'package:flutter_bloc_socket/apis/socket_api.dart';
 
@@ -46,6 +47,8 @@ class _HomeState extends State<Home> {
   print('Second text field: ${myController.text}');
 }
 
+var userCreationIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,10 +71,23 @@ class _HomeState extends State<Home> {
               ),
               TextButton(
                 onPressed: (() async {
-                  User mockData = User(
-                      id: 3, socketId: '32343242', userName: 'User C');
+                  if(userCreationIndex == 0) {
+                    final res = await databaseApi.insertUser(Mockdata().userA);
+                    setState(() { userCreationIndex++; });
+                  } else if(userCreationIndex == 1) {
+                    final res = await databaseApi.insertUser(Mockdata().userB);
+                    setState(() { userCreationIndex++; });
+                  } else if(userCreationIndex == 2) {
+                    final res = await databaseApi.insertUser(Mockdata().userC);
+                    setState(() { userCreationIndex++; });
+                  } else if(userCreationIndex == 3) {
+                    final res = await databaseApi.insertUser(Mockdata().userD);
+                    setState(() { userCreationIndex++; });
+                  } else {
+                    print('All Mock Users where created');
+                  }
 
-                  final res = await databaseApi.insertUser(mockData);
+                  
                   setState(() {
                     textOutput = 'User created';
                   });
