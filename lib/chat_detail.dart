@@ -18,7 +18,7 @@ class ChatDetail extends StatefulWidget {
 class _ChatDetailState extends State<ChatDetail> {
 
     late SocketApi socketApi;
-    Auth auth = Auth.auth;
+    Auth auth = Auth.instance;
 
     @override
   void initState() {

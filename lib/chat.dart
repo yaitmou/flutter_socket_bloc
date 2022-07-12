@@ -25,31 +25,21 @@ class _ChatState extends State<Chat> {
   // Is this the correct approach here to do it like this?
   late SocketApi socketApi;
   DatabaseApi databaseApi = DatabaseApi.db;
-  Auth auth = Auth.auth;
-  User user = User(id: 0, socketId: '', userName: '');
-  var currentUser;
+  Auth auth = Auth.instance;
 
-  getUser() async {
-    print('getUser ${widget.username}');
-      currentUser = await auth.authenticate(widget.username);
-      print('User print : ${currentUser}');
-      return currentUser;
-    }
 
-  @override
+   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
-    getUser().then(
-      (value) {
-        setState(() {
-          user = value;
-        });
-        socketApi = SocketApi(context.read<ChatBloc>(), value);
-        socketApi.connect();
-      },
-    );
+    initSocketApi();
+  }
+
+  Future<void> initSocketApi() async {
+    socketApi = SocketApi(context.read<ChatBloc>());
+    await socketApi.connect();
+
+    setState(() {});
   }
 
   @override
@@ -63,7 +53,7 @@ class _ChatState extends State<Chat> {
   // iconTheme: IconThemeData(
   //   color: Colors.black, //change your color here
   // ),
-  title: Text("Chatlist of ${user.userName}"),
+  title: Text("Chatlist of ${auth.currentUser.socketId}"),
   centerTitle: true,
 ),
       // floatingActionButton: FloatingActionButton(

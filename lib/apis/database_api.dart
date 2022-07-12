@@ -9,13 +9,22 @@ class DatabaseApi {
   DatabaseApi._();
   static final DatabaseApi db = DatabaseApi._();
 
-  static Database? _database;
-  Future<Database> get database async => _database ??= await initDB();
+  // static Database? _database;
+  // Future<Database> get database async => _database ??= await initDB();
 
-   Auth auth = Auth.auth;
+
+
+  static Database? _database;
+  Future<Database> get database async =>
+      _database ??= await initDB();
+
+   Auth auth = Auth.instance;
 
   // static User? _authUser;
   // Future<User> get authUser async => user;
+
+
+
 
   Future<Database> initDB() async {
     print('_init database');
@@ -132,6 +141,8 @@ class DatabaseApi {
       // Pass the user's id as a whereArg to prevent SQL injection.
       whereArgs: [user.id],
     );
+    auth.updateCurrentUserInstance(user);
+    print('updatesocketid done: ${user.id} ++ ${auth.currentUser}');
   }
 
   Future<void> testfunction() async {
@@ -174,7 +185,7 @@ final db = await database;
     // rawQuery('SELECT * FROM chatuser WHERE id = (SELECT partnerId FROM contacts WHERE chatuser_id = ${auth.currentUser.id})');
 
 final List<Map<String, dynamic>> maps = await db.rawQuery('SELECT * FROM chatuser JOIN contacts ON chatuser.id = contacts.userId WHERE contacts.partnerId = ${auth.currentUser.id}');
- print('map print $maps');
+ //print('map print $maps');
     final res = List.generate(maps.length, (i) {
       return User(
         id: maps[i]['id'],
@@ -182,7 +193,7 @@ final List<Map<String, dynamic>> maps = await db.rawQuery('SELECT * FROM chatuse
         userName: maps[i]['userName'],
       );
     });
-    print(res);
+   // print(res);
     return res;
     
   }
