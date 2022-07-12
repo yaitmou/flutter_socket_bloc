@@ -6,6 +6,8 @@ import '../models/chat_message.dart';
 import '../models/chat_user.dart';
 import 'dart:io' show Platform;
 
+import 'authentification.dart';
+
 
 // In this file it would help me a lot if you could explain me each line, since
 // im not really understanding much here. It seems to work fine actually but I
@@ -15,20 +17,19 @@ import 'dart:io' show Platform;
 
 class SocketApi {
   late Socket socket;
-  late User user;
+  Auth auth = Auth.instance;
 
   ChatBloc chatBloc = ChatBloc(DatabaseApi.db);
 
   static final SocketApi _socketApi = SocketApi._internal();
 
-  factory SocketApi(ChatBloc chatBloc, User user
+  factory SocketApi(
 
       // you can pass here all data that you need to access. For example:
       // User user <-- might be helpful to send some user data...
       ) {
-    _socketApi.chatBloc = chatBloc;
-    _socketApi.user = user;
-    print('user in socket api ${user}'); // <--- How to retrieve the user here? what am I missing here?
+   // _socketApi.chatBloc = chatBloc;
+   // print('user in socket api ${user}'); // <--- How to retrieve the user here? what am I missing here?
     return _socketApi;
   }
 
@@ -50,32 +51,38 @@ class SocketApi {
       // also send user.id or any information related to the user and which can
       // help us double check that we are indeed targeting to right user!
 
-      socket.on('connect', (_) {
+      socket.on('connect', (_) async {
+        final values =await DatabaseApi.db.getUserByName('User A');
+       
         socket.emit('addUser', {
           "socketId": socket.id,
-          "id": user.id, //<-- this is the current user's id (not socketId)
-          "userName": user.userName, // <-- current user firsName
+          "id": values.id, //<-- this is the current user's id (not socketId)
+          "userName": values.userName, // <-- current user firsName
           // "isOnline": true,
         });
-        final updateUser = User(id: user.id, socketId: socket.id!, userName: user.userName);
+        print('${socket.id} ${values.id} ${values.userName}');
+        final updateUser = User(id: values.id, socketId: socket.id!, userName: values.userName);
+    
         chatBloc.dbApi.updateSocketId(updateUser);
         chatBloc.add(LoadChatPartnersEvent());
+         print('auth.currentUser after socket ${auth.currentUser}');
+      
       });
 
       //? Reconnected
       /// Just in case user gets disconnected from server we reconnect ans send
       /// the same payload
-      socket.on('reconnect', (_) {
-        socket.emit('addUser', {
-          "socketId": socket.id,
-          "id": user.id,
-          "userName": user.userName,
-          // "isOnline": true,
-        });
-        final updateUser = User(id: user.id, socketId: socket.id!, userName: user.userName);
-        chatBloc.dbApi.updateSocketId(updateUser);
-        chatBloc.add(LoadChatPartnersEvent());
-      });
+      // socket.on('reconnect', (_) {
+      //   socket.emit('addUser', {
+      //     "socketId": socket.id,
+      //     "id": user.currentUser.id,
+      //     "userName": user.currentUser.userName,
+      //     // "isOnline": true,
+      //   });
+      //   final updateUser = User(id: user.currentUser.id, socketId: socket.id!, userName: user.currentUser.userName);
+      //   chatBloc.dbApi.updateSocketId(updateUser);
+      //   chatBloc.add(LoadChatPartnersEvent());
+      // });
 
       //! Error
       socket.on("error", (data) {
@@ -102,8 +109,9 @@ class SocketApi {
     }
   }
 
-  void connect() {
+   connect() {
     socket.connect();
+    return true;
   }
 
   void disconnect() {

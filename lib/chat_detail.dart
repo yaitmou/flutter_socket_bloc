@@ -24,7 +24,7 @@ class _ChatDetailState extends State<ChatDetail> {
   void initState() {
     super.initState();
 
-socketApi = SocketApi(context.read<ChatBloc>(), auth.currentUser);
+socketApi = SocketApi();
     // Start listening to changes.
   myController.addListener(_printLatestValue);
   }

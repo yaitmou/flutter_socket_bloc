@@ -36,7 +36,7 @@ class _ChatState extends State<Chat> {
   }
 
   Future<void> initSocketApi() async {
-    socketApi = SocketApi(context.read<ChatBloc>());
+    socketApi = SocketApi();
     await socketApi.connect();
 
     setState(() {});
